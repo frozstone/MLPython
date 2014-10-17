@@ -5,6 +5,7 @@
 *.suo
 *.user
 *.sln.docstates
+*.pyproj
 
 # Build results
 
@@ -154,3 +155,5 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+/MLPython/*.pyc
+/MLPython/*.pyc
