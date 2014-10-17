@@ -22,7 +22,7 @@ class ExtractFeatures():
     _mt_wordidx = 0 #starting word
     _mt_endidx = 0
 
-    def __init__(self, sentence, tag, np, math, depTree, annotation, preCount=None):
+    def __init__(self, sentence, tag, np, math, depTree, annotation, preCount=0):
         self._sentence = sentence
         self._tagInfo = tag
         self._np = self.__validNP(np, math)

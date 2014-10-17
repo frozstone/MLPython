@@ -22,7 +22,7 @@ class ParserInfo(object):
         self.maths = []
         for token in self.tagInfo:
             word = self.sentence[token[0]:token[1]]
-            if word.startswith('__MATH_') and word.endswith('__'): #uncomment the 'and' part for PM
+            if word.startswith('MATH_'):# and word.endswith('__'): #uncomment the 'and' part for PM
                 self.maths.append((token[0], token[1]))
 
     def AddPOSTag(self, block_so):

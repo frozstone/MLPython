@@ -96,11 +96,11 @@ if __name__ == "__main__":
     ptn5 = re.compile(r"MATH (is|are) NP\.?")
     ptn6 = re.compile(r"NP (is|are) MATH\.?")
 
-    paragraphDir = 'D:/test/sentences/math0106119'
-    parseDir = 'D:/test/parsetrees/math0106119' #argv[2]
-    featureDir = 'D:/test/features/math0106119' #argv[3]
-    annLongDir = ''#'D:/ntcir10/bios_long/' #argv[4] #will be null for final run
-    annShortDir = ''#'D:/ntcir10/bios_short/' #argv[4] #will be null for final run
+    paragraphDir = 'D:/ntcir10/sentences/'
+    parseDir = 'D:/ntcir10/parsetrees/' #argv[2]
+    featureDir = 'D:/ntcir10/features/' #argv[3]
+    annLongDir = 'D:/ntcir10/bios_long/' #argv[4] #will be null for final run
+    annShortDir = 'D:/ntcir10/bios_short/' #argv[4] #will be null for final run
     trainFormatFile = 'D:/test/format.arff' #argv[5]
 
     paras = listdir(paragraphDir)
@@ -113,22 +113,18 @@ if __name__ == "__main__":
     proc = preprocess()
     csv.register_dialect("weka", WekaCSV)
 
+    exitFlag = False
+    spsample = ''
     #parallelize this for loop
     for para in paras:
         if para not in feats:
             print para
             usedSentenceLength = 0
-            fFormat = open(trainFormatFile)
-            trainFile = fFormat.read()
-            fFormat.close()
             detailInfo = []
 
             #Use in the case of performance measurement (PM)
             parsers, ann = proc.openParserFile(path.join(paragraphDir, para), path.join(parseDir,  para.replace('.txt', '.dep.txt')), path.join(parseDir, para.replace('.txt', '.so.txt')), path.join(annLongDir, para), path.join(annShortDir, para))
             #parsers = proc.openParserFile(path.join(paragraphDir, para), path.join(parseDir,  para.replace('.txt', '.dep.txt')), path.join(parseDir, para.replace('.txt', '.so.txt')))
-
-            trainLines = cStringIO.StringIO()
-            traincsv = csv.writer(trainLines, dialect='weka')
 
             #PM
             usedSentenceLength = 0
@@ -140,7 +136,9 @@ if __name__ == "__main__":
                     continue
 
                 sp = ShortestPath(sentenceData.depTree)
+                spsample = sp
                 for mt in sentenceData.maths:
+
                     #PM
                     if sentenceData.sentence[mt[0]:mt[1]] not in ann._math:
                         continue
@@ -148,66 +146,27 @@ if __name__ == "__main__":
                     for np in sentenceData.nps:
                         if (not(mt[0] == np[0] and mt[1] == np[1])) and ((mt[0] < np[0] and mt[1] <= np[0]) or (np[0] < mt[0] and np[1] <= mt[1])):
                             #Extracting features
+                            print np
+                            print sentenceData.sentence[np[0]:np[1]]
+
                             #Put ann instead of None in 'ef' declaration for PM
 
                             ef = ExtractFeatures(sentenceData.sentence, sentenceData.tagInfo, np, mt, sentenceData.depTree, ann)
-                            mtInNP = not (np[0] == ef._np[0] and np[1] == ef._np[1])
-                            colon, comma, othermath = ef.FirstFeature()
-                            insidebracket = ef.SecondFeature()
-                            distance = ef.ThirdFeature()
+                            
                             mathbefore = ef.FourthFeature()
-                            verb = ef.FifthFeature()
-                            nppresurf, npprepos, npnextsurf, npnextpos = ef.SixthFeature(3)
-                            mathpresurf, mathprepos, mathnextsurf, mathnextpos = ef.SeventhFeature(3)
-                            pattern1, pattern2, pattern3, pattern4, pattern5, pattern6, pattern7 = ef.EighthFeature(ptn1, ptn2, ptn3, ptn4, ptn5, ptn6)
-                            npstart, npend, mathstart = ef.PreTenthFeature()
-                            depdistance, rel_math, rel_np, math_out, np_out = sp.TenthFeature(npstart, npend, mathstart)
-
                             #PM
                             isDesc, annStartIdx, annEndIdx = ef.isDescription(mathbefore)
 
-                            #PM
-                            detailInfo.append(sentenceData.sentence[mt[0]:mt[1]] + '\t' + str(annStartIdx) + '\t' + str(annEndIdx) + '\n')
-                            #detailInfo.append(sentenceData.sentence[mt[0]:mt[1]] + '\t' + sentenceData.sentence[ef._np[0]:ef._np[1]] + '\n')
-
-                            featureVector = []
-
-                            #Writing pattern features
-                            featureVector.extend([str(mtInNP), str(pattern1), str(pattern2), str(pattern3), str(pattern4), str(pattern5), str(pattern6), str(pattern7)])
-
-                            #Writing feature 1 - 4
-                            featureVector.extend([str(colon), str(comma), str(othermath), str(insidebracket), str(distance), str(mathbefore)])
-                            
-                            #Writing feature 5
-                            featureVector.append(verb if verb.strip() != '' else 'None')
-
-                            #Writing feature 6 and 7
-                            featureVector.extend(NGramTrainingLine(mathpresurf, mathprepos, "Math", "Before"))
-                            featureVector.extend(NGramTrainingLine(mathnextsurf, mathnextpos, "Math", "After"))
-                            featureVector.extend(NGramTrainingLine(nppresurf, npprepos, "NP", "Before"))
-                            featureVector.extend(NGramTrainingLine(npnextsurf, npnextpos, "NP", "After"))
-
-                            #Writing feature 10
-                            if math_out != None:
-                                featureVector.extend([str(100000 if depdistance == Inf else int(depdistance)), str(math_out), str(np_out)])
-                                featureVector.extend(NGramDepRel(rel_math, "Math"))
-                                featureVector.extend(NGramDepRel(rel_np, "NP"))
-                            else:
-                                featureVector.extend([100000, False, False])
-                                featureVector.extend(['','','','','','','','','','','',''])
-                            #PM
-                            featureVector.append(isDesc)
-                            #featureVector.append(str(True))
-
-                            traincsv.writerow(featureVector)
+                            if isDesc:
+                                mtInNP = not (np[0] == ef._np[0] and np[1] == ef._np[1])
+                                verb = ef.FifthFeature()
+                                npstart, npend, mathstart = ef.PreTenthFeature()
+                                depdistance, deppath = sp.TenthFeature(npstart, npend, mathstart)
+                                print(sentenceData.sentence[mt[0]:mt[1]] + ' ' + sentenceData.sentence[np[0]:np[1]] + str(deppath))
 
                 #PM
                 usedSentenceLength += sum(1 for c in sentenceData.sentence if c.strip() != '')
-            
-            #Dump the detailFile and trainFile in a file
-            f1 = open(path.join(featureDir, para), 'w')
-            f1.writelines(detailInfo)
-            f1.close()
-            f2 = open(path.join(featureDir, para).replace('.txt', '.arff'), 'w')
-            f2.write(trainFile + trainLines.getvalue())
-            f2.close()
+                if para == '0801.0652_2.txt' and 'MATH_5' in sentenceData.sentence:
+                    break
+        if para == '0801.0652_2.txt' and 'MATH_5' in sentenceData.sentence:
+                    break

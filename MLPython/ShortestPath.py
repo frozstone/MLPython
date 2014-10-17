@@ -7,7 +7,7 @@ class ShortestPath(object):
     __dist = []
     __pred = []
     __rels = []
-
+    __arcm = ''
     def __init__(self, relations):
         self.__rels = []
         self.__rels = relations

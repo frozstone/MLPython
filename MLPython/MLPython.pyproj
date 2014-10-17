@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>0fce71a5-f2f7-49a8-9176-f13529e3e6fd</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Evaluation.py</StartupFile>
+    <StartupFile>MLPython.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>

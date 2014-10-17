@@ -19,7 +19,7 @@ class preprocess(object):
             print 'Different number of blocks: ' + address_def
         else:
             for i in range(len(paragraph)):
-                if '__MATH_' in paragraph[i] and 'parse_status="sentence length limit exceeded"' not in blocks_so[i]:
+                if 'MATH_' in paragraph[i] and 'parse_status="sentence length limit exceeded"' not in blocks_so[i]:
                     parserInfos.append(ParserInfo(lineNumber, paragraph[i], blocks_def[i], blocks_so[i]))
                 else:
                     parserInfos.append(ParserInfo(lineNumber, paragraph[i], None, None))
