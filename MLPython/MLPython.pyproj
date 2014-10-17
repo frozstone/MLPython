@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>0fce71a5-f2f7-49a8-9176-f13529e3e6fd</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>Evaluation.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <Name>MLPython</Name>
+    <RootNamespace>MLPython</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Annotation.py" />
+    <Compile Include="CheckDefaultMetrics.py" />
+    <Compile Include="CheckGraphAccuracy.py" />
+    <Compile Include="CreateSingleFile.py" />
+    <Compile Include="DescriptionToXML.py" />
+    <Compile Include="Evaluation.py" />
+    <Compile Include="EvaluationOld.py" />
+    <Compile Include="ExtractFeatures.py" />
+    <Compile Include="GraphOutsideWorld.py" />
+    <Compile Include="MLPython.py" />
+    <Compile Include="ParserInfo.py" />
+    <Compile Include="Preprocess.py" />
+    <Compile Include="ReformatTagFile.py" />
+    <Compile Include="ShortestPath.py" />
+    <Compile Include="SplitSet.py" />
+    <Compile Include="WekaCSV.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="format.gexf" />
+    <Content Include="format.xml" />
+    <Content Include="README.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
+</Project>
