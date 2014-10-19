@@ -8,7 +8,6 @@ class Annotation:
     _maxtoken = 0
     __parserinfos = []
     __allTokens = {}
-    _alltokens = {}
 
     def __alignCharIndexes(self):
         #get sentence number
@@ -51,19 +50,24 @@ class Annotation:
         endtoken = tuple()
         sentenceoffset = 0
         sentencenumber = 0
+        foundStartToken = False
+        foundEndToken = False
         for k,v in self.__allTokens.iteritems():
-            if v[-1][1] > annToken[1]:
+            if v[0][0] <= annToken[1] <= v[-1][1] :
+                #print k, v
                 #search the tuple that corresponds to the annToken
-                foundStartToken = False
-                for t in v:
+                for i,t in enumerate(v):
                     if t[0] == annToken[0]:
                         starttoken = (t[2] - sentenceoffset, t[3] - sentenceoffset)
                         foundStartToken = True
                         sentencenumber = k
-                    if t[1] == annToken[1]:
+                    if t[1] == annToken[1] or i == len(v) - 1:
                         endtoken = (t[2] - sentenceoffset, t[3] - sentenceoffset)
-                        if foundStartToken:
-                            break
+                        foundEndToken = True
+                    if foundEndToken and foundStartToken:
+                        break
+                if foundEndToken and foundStartToken:
+                    break
             sentence = self.__parserinfos[k].sentence
             sentenceoffset += len(sentence) #if 'MATH_' in sentence else 0
         return sentencenumber, list(set([starttoken, endtoken]))
@@ -73,12 +77,13 @@ class Annotation:
             longOrShort -> 1 for short ; 2 for long ; 3 for long and short
         '''
         self._math = {}
+        self._mathEnju = {}
         self._mathtext = {}
         self._tokens = {}
+        self.__allTokens = {}
         self.__parserinfos = parserInfos
 
         self.__alignCharIndexes()
-        self._alltokens = self.__allTokens
         lnsLong = open(address_annLong).readlines()
         lnsShort = open(address_annShort).readlines()
         
@@ -130,6 +135,7 @@ class Annotation:
             if ln.startswith('MATH_'):
                 mathname = ln.strip()
             elif ln.startswith('[') and (longOrShort == 1 or longOrShort == 3):
+                #print mathname
                 regions = ln.strip()[1:-1].split(',')
                 for region in regions:
                     if '-' in region:
@@ -137,6 +143,7 @@ class Annotation:
                         self._math[mathname].append(range(int(blocks[0]), int(blocks[1]) + 1))
                         x,y = self.__annToEnju(self._tokens[int(blocks[0])])
                         w,z = self.__annToEnju(self._tokens[int(blocks[1])])
+                        #print x,y,w,z, self._tokens[int(blocks[0])], self._tokens[int(blocks[1])]
                         self._mathEnju[mathname].append((x, y[0][0], z[-1][1]))
 
                         self._mathtext[mathname].append([self._tokens[i][2] for i in range(int(blocks[0]), int(blocks[1]) + 1)])
@@ -144,5 +151,6 @@ class Annotation:
                         self._math[mathname].append([int(region)])
                         x,y = self.__annToEnju(self._tokens[int(region)])
                         w,z = self.__annToEnju(self._tokens[int(region)])
+                        #print x,y,w,z, self._tokens[int(region)]
                         self._mathEnju[mathname].append((x, y[0][0], z[-1][1]))
                         self._mathtext[mathname].append(self._tokens[int(region)][2])

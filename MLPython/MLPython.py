@@ -10,30 +10,6 @@ from os import listdir, mkdir, path
 from sys import argv
 import re
 
-def DictionaryToWekaFormat(ngrams, position, type='token'):
-    if position == 'Before':
-        retVector = []
-        for idx in [-3,-2,-1,(-3,-2), (-2,-1), (-3,-2,-1)]:
-            if idx in ngrams:
-                retVector.extend([ngrams[idx][0], ngrams[idx][1]])
-            else:
-                retVector.extend(['',''])
-        return retVector
-    elif position == "After":
-        retVector = []
-        for idx in [1,2,3,(1,2), (2,3), (1,2,3)]:
-            if idx in ngrams:
-                if type == 'token':
-                    retVector.extend([ngrams[idx][0], ngrams[idx][1]])
-                elif type == 'dep':
-                    retVector.append(ngrams[idx])
-            else:
-                if type == 'token':
-                    retVector.extend(['',''])
-                elif type == 'dep':
-                    retVector.append('')
-        return retVector
-
 def NGramTrainingLine(surface, pos, type, position):
     surfacename = ''
     posname = ''
@@ -88,6 +64,12 @@ def NGramDepRel(relations, type):
     
     return DictionaryToWekaFormat(ngram, 'After', 'dep')
 
+def GetMathIdx(mathname, sentence, taginfos):
+    for i,taginfo in enumerate(taginfos):
+        if mathname in sentence[taginfo[0]:taginfo[1]]:
+            return i
+    return -1
+
 if __name__ == "__main__":
     ptn1 = re.compile(r"(D|d)enote(d)? (as|by)\sMATH\sNP\.?")
     ptn2 = re.compile(r"((L|l)et|(S|s)et) MATH (denote|denotes|be) NP\.?")
@@ -111,36 +93,50 @@ if __name__ == "__main__":
         mkdir(featureDir)
 
     proc = preprocess()
+    shortestpaths = []
 
-    exitFlag = False
-    spsample = ''
     #parallelize this for loop
     for para in paras:
         if para not in feats:
-            print para
             usedSentenceLength = 0
             detailInfo = []
 
+            #para = '0905.3705_4.txt'
+            print para
             parsers, ann = proc.openParserFile(path.join(paragraphDir, para), path.join(parseDir,  para.replace('.txt', '.dep.txt')), path.join(parseDir, para.replace('.txt', '.so.txt')), path.join(annLongDir, para), path.join(annShortDir, para))
 
             for mtname, mtdescs in ann._mathEnju.iteritems():
+                #print mtname, len(mtdescs)
+                if len(mtdescs) == 0:
+                    continue
+                mtidx = GetMathIdx(mtname, parsers[mtdescs[0][0]].sentence, parsers[mtdescs[0][0]].tagInfo)
                 for mtdesc in mtdescs:
                     taginfos = parsers[mtdesc[0]].tagInfo
                     starttoken = tuple()
+                    startidx = 0
                     endtoken = tuple()
+                    endidx = 0
                     startfound = False
                     endfound = False
-                    for taginfo in taginfos:
-                        if mtdesc[1] == taginfo[0]:
+                    for i,taginfo in enumerate(taginfos):
+                        if taginfo[0] <= mtdesc[1] <= taginfo[1]:
                             starttoken = taginfo
+                            startidx = i
                             startfound = True
-                        if mtdesc[2] == taginfo[1]:
+                        if taginfo[0] <= mtdesc[2] <= taginfo[1] or i == len(taginfos) - 1:
                             endtoken = taginfo
+                            endidx = i
                             endfound = True
                         if startfound and endfound:
                             break
+                    #if not endfound and mtdesc[2] >= taginfos[-1][2]:
+                    #    endtoken = taginfos[-1]
+                    #    endidx = len(taginfos) - 1
+                    #    endfound = True
                     if not(startfound and endfound):
-                        print "cannot found proper token"
+                        print "cannot found proper token", mtname, startidx, endidx, mtdesc
                     else:
                         sp = ShortestPath(parsers[mtdesc[0]].depTree)
-                        sp.TenthFeature()
+                        distance, deppath = sp.TenthFeature(startidx, endidx, mtidx)
+                        shortestpaths.append((distance, deppath))
+                        #print mtname, startidx, endidx, mtdesc, distance, deppath
