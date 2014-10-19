@@ -26,7 +26,7 @@ class preprocess(object):
                 lineNumber += 1
         
         if address_annLong != None and address_annShort != None:
-            ann = Annotation(address_annLong, address_annShort)
+            ann = Annotation(address_annLong, address_annShort, parserInfos, 1)
             return parserInfos, ann
         else:
             return parserInfos

@@ -111,7 +111,6 @@ if __name__ == "__main__":
         mkdir(featureDir)
 
     proc = preprocess()
-    csv.register_dialect("weka", WekaCSV)
 
     exitFlag = False
     spsample = ''
@@ -122,51 +121,26 @@ if __name__ == "__main__":
             usedSentenceLength = 0
             detailInfo = []
 
-            #Use in the case of performance measurement (PM)
             parsers, ann = proc.openParserFile(path.join(paragraphDir, para), path.join(parseDir,  para.replace('.txt', '.dep.txt')), path.join(parseDir, para.replace('.txt', '.so.txt')), path.join(annLongDir, para), path.join(annShortDir, para))
-            #parsers = proc.openParserFile(path.join(paragraphDir, para), path.join(parseDir,  para.replace('.txt', '.dep.txt')), path.join(parseDir, para.replace('.txt', '.so.txt')))
 
-            #PM
-            usedSentenceLength = 0
-
-            for sentenceData in parsers:
-                #PM
-                if len(sentenceData.depTree) == 0:
-                    usedSentenceLength += sum(1 for c in sentenceData.sentence if c.strip() != '')
-                    continue
-
-                sp = ShortestPath(sentenceData.depTree)
-                spsample = sp
-                for mt in sentenceData.maths:
-
-                    #PM
-                    if sentenceData.sentence[mt[0]:mt[1]] not in ann._math:
-                        continue
-
-                    for np in sentenceData.nps:
-                        if (not(mt[0] == np[0] and mt[1] == np[1])) and ((mt[0] < np[0] and mt[1] <= np[0]) or (np[0] < mt[0] and np[1] <= mt[1])):
-                            #Extracting features
-                            print np
-                            print sentenceData.sentence[np[0]:np[1]]
-
-                            #Put ann instead of None in 'ef' declaration for PM
-
-                            ef = ExtractFeatures(sentenceData.sentence, sentenceData.tagInfo, np, mt, sentenceData.depTree, ann)
-                            
-                            mathbefore = ef.FourthFeature()
-                            #PM
-                            isDesc, annStartIdx, annEndIdx = ef.isDescription(mathbefore)
-
-                            if isDesc:
-                                mtInNP = not (np[0] == ef._np[0] and np[1] == ef._np[1])
-                                verb = ef.FifthFeature()
-                                npstart, npend, mathstart = ef.PreTenthFeature()
-                                depdistance, deppath = sp.TenthFeature(npstart, npend, mathstart)
-                                print(sentenceData.sentence[mt[0]:mt[1]] + ' ' + sentenceData.sentence[np[0]:np[1]] + str(deppath))
-
-                #PM
-                usedSentenceLength += sum(1 for c in sentenceData.sentence if c.strip() != '')
-                if para == '0801.0652_2.txt' and 'MATH_5' in sentenceData.sentence:
-                    break
-        if para == '0801.0652_2.txt' and 'MATH_5' in sentenceData.sentence:
-                    break
+            for mtname, mtdescs in ann._mathEnju.iteritems():
+                for mtdesc in mtdescs:
+                    taginfos = parsers[mtdesc[0]].tagInfo
+                    starttoken = tuple()
+                    endtoken = tuple()
+                    startfound = False
+                    endfound = False
+                    for taginfo in taginfos:
+                        if mtdesc[1] == taginfo[0]:
+                            starttoken = taginfo
+                            startfound = True
+                        if mtdesc[2] == taginfo[1]:
+                            endtoken = taginfo
+                            endfound = True
+                        if startfound and endfound:
+                            break
+                    if not(startfound and endfound):
+                        print "cannot found proper token"
+                    else:
+                        sp = ShortestPath(parsers[mtdesc[0]].depTree)
+                        sp.TenthFeature()

@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>0fce71a5-f2f7-49a8-9176-f13529e3e6fd</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>MLPython.py</StartupFile>
+    <StartupFile>ScriptTest.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -35,6 +35,7 @@
     <Compile Include="ParserInfo.py" />
     <Compile Include="Preprocess.py" />
     <Compile Include="ReformatTagFile.py" />
+    <Compile Include="ScriptTest.py" />
     <Compile Include="ShortestPath.py" />
     <Compile Include="SplitSet.py" />
     <Compile Include="WekaCSV.py" />

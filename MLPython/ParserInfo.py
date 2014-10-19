@@ -7,7 +7,7 @@ class ParserInfo(object):
     maths = [] #[(start, end)]
     depTree = [] #[(relation, first token, second token)]
 
-    def __init__(self, number, sentence, block_def, block_so):
+    def __init__(self, number=None, sentence=None, block_def=None, block_so=None):
         self.lineNumber = number
         self.sentence = sentence
 
