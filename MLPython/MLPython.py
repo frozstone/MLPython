@@ -95,17 +95,23 @@ if __name__ == "__main__":
     proc = preprocess()
     shortestpaths = []
 
+    stopflag = False
     #parallelize this for loop
     for para in paras:
+        if stopflag:
+            break
+
         if para not in feats:
             usedSentenceLength = 0
             detailInfo = []
 
             #para = '0905.3705_4.txt'
-            print para
+            #print para
             parsers, ann = proc.openParserFile(path.join(paragraphDir, para), path.join(parseDir,  para.replace('.txt', '.dep.txt')), path.join(parseDir, para.replace('.txt', '.so.txt')), path.join(annLongDir, para), path.join(annShortDir, para))
 
             for mtname, mtdescs in ann._mathEnju.iteritems():
+                if stopflag:
+                    break
                 #print mtname, len(mtdescs)
                 if len(mtdescs) == 0:
                     continue
@@ -139,4 +145,11 @@ if __name__ == "__main__":
                         sp = ShortestPath(parsers[mtdesc[0]].depTree)
                         distance, deppath = sp.TenthFeature(startidx, endidx, mtidx)
                         shortestpaths.append((distance, deppath))
+                        #query
+                        if distance == 2 and deppath[0] == 'coord_arg12' and deppath[1] == 'noun_arg1':# and deppath[2] == 'verb_arg12':
+                            print para
+                            print parsers[mtdesc[0]].sentence
+                            print mtname, parsers[mtdesc[0]].sentence[mtdesc[1]:mtdesc[2]]
+                            stopflag = True
+
                         #print mtname, startidx, endidx, mtdesc, distance, deppath
